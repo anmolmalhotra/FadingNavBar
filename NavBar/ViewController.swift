@@ -9,19 +9,28 @@
 import UIKit
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
-
+ let offsetThreshold:CGFloat = 50.0
     let tableView: UITableView = {
         let tableView = UITableView(frame: .zero, style: .grouped)
         return tableView
     }()
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
+    func setNavBarTransparent() {
         navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
         navigationController?.navigationBar.shadowImage = UIImage()
         UIApplication.shared.statusBarStyle = .lightContent
-        
+    }
+    
+    func updateNavBarOpacity(alpha: CGFloat) {
+        let navImage = UIImage(color: UIColor(colorLiteralRed: 1.0, green: 1.0, blue: 1.0, alpha: Float(alpha)), size: CGSize(width: self.view.frame.width, height: 64))
+        self.navigationController?.navigationBar.setBackgroundImage(navImage, for: .default)
+        self.navigationItem.title = "Home"
+        UIApplication.shared.statusBarStyle = .default
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setNavBarTransparent()
         view.backgroundColor = .white
         
         view.addSubview(tableView)
@@ -44,21 +53,8 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         print(scrollView.contentOffset.y)
         
         let offset = scrollView.contentOffset.y
+        updateNavBarOpacity(alpha: offset/offsetThreshold)
         
-        if offset > 50 {
-            
-            let navImage = UIImage(color: .white, size: CGSize(width: self.view.frame.width, height: 64))
-            self.navigationController?.navigationBar.setBackgroundImage(navImage, for: .default)
-            self.navigationController?.navigationBar.shadowImage = nil
-            self.navigationItem.title = "Home"
-            UIApplication.shared.statusBarStyle = .default
-            
-        } else {
-            navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
-            navigationController?.navigationBar.shadowImage = UIImage()
-            self.navigationItem.title = nil
-            UIApplication.shared.statusBarStyle = .lightContent
-        }
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
