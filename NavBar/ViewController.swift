@@ -25,12 +25,20 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     func updateNavBarOpacity(alpha: CGFloat) {
         let navImage = UIImage(color: UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: alpha), size: CGSize(width: self.view.frame.width, height: 64))
         self.navigationController?.navigationBar.setBackgroundImage(navImage, for: .default)
+        self.navigationController?.navigationBar.shadowImage = nil
         UIApplication.shared.statusBarStyle = .default
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        setNavBarTransparent()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        updateNavBarOpacity(alpha: 1.0)
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setNavBarTransparent()
         view.backgroundColor = .white
         
         view.addSubview(tableView)
@@ -110,6 +118,13 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         cell.textLabel?.text = "Cell: \(indexPath.row)"
         
         return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        let detailController = DetailController()
+        detailController.controllerTitle = "Cell: \(indexPath.row)"
+        navigationController?.pushViewController(detailController, animated: true)
     }
 
 }
