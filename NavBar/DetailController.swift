@@ -10,9 +10,9 @@ import UIKit
 
 class DetailController: UIViewController {
     
-    var controllerTitle: String? {
+    var navTitle: String? {
         didSet {
-            navigationItem.title = controllerTitle
+            navigationItem.title = navTitle
         }
     }
     

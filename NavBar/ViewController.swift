@@ -10,126 +10,125 @@ import UIKit
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
-    let offsetThreshold:CGFloat = 64.0
+    // MARK: - Properties
+    let offsetThreshold: CGFloat = 64.0
     
+    // MARK: - UI Components
     let tableView: UITableView = {
         let tableView = UITableView(frame: .zero, style: .grouped)
         return tableView
     }()
     
-    func setNavBarTransparent() {
-        navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
-        navigationController?.navigationBar.shadowImage = UIImage()
-    }
-    
-    func updateNavBarOpacity(alpha: CGFloat) {
-        let navImage = UIImage(color: UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: alpha), size: CGSize(width: self.view.frame.width, height: 64))
-        self.navigationController?.navigationBar.setBackgroundImage(navImage, for: .default)
-        self.navigationController?.navigationBar.shadowImage = nil
-        UIApplication.shared.statusBarStyle = .default
-    }
-    
+    // MARK: - View Will Appear
+    // making nav bar transparent
     override func viewWillAppear(_ animated: Bool) {
-        setNavBarTransparent()
+        super.viewWillAppear(animated)
+        
+        makeNavBarTransparent()
     }
     
+    // MARK: - View Will Disappear
+    // checking if nav bar opacity is less than 1.0, if it is setting it to 1.0
     override func viewWillDisappear(_ animated: Bool) {
-        updateNavBarOpacity(alpha: 1.0)
+        super.viewWillDisappear(animated)
+        
+        let offset = tableView.contentOffset.y / offsetThreshold
+        
+        if offset < 1.0 {
+            setNavBarOpacity(alpha: 1.0)
+        }
     }
     
+    // MARK: - View Did Load
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         view.backgroundColor = .white
         
         view.addSubview(tableView)
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        
+        tableView.topAnchor.constraint(equalTo: view.topAnchor, constant: -64).isActive = true
+        tableView.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
+        tableView.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
+        tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
         
         tableView.delegate = self
         tableView.dataSource = self
         
-        tableView.translatesAutoresizingMaskIntoConstraints = false
-        
-        tableView.topAnchor.constraint(equalTo: view.topAnchor, constant: -64).isActive = true
-        tableView.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 0).isActive = true
-        tableView.rightAnchor.constraint(equalTo: view.rightAnchor, constant: 0).isActive = true
-        tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: 0).isActive = true
-        
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cellId")
-        
     }
     
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        
-        let offset = scrollView.contentOffset.y
-        let alphaOffset = offset/offsetThreshold
-        
-        if alphaOffset > 1.0 && alphaOffset < 2.5 {
-            let fadeTextAnimation = CATransition()
-            fadeTextAnimation.duration = 0.5
-            fadeTextAnimation.type = kCATransitionFade
-            
-            self.navigationController?.navigationBar.layer.add(fadeTextAnimation, forKey: "fadeText")
-            self.navigationItem.title = "Home"
-        } else if alphaOffset < 1.0 {
-            self.navigationItem.title = nil
-        }
-        
-        if alphaOffset > 0.0 {
-            updateNavBarOpacity(alpha: alphaOffset)
-        } else {
-            setNavBarTransparent()
-        }
-        
-        if alphaOffset > 0.4 {
-            self.navigationController?.navigationBar.shadowImage = nil
-        } else {
-            self.navigationController?.navigationBar.shadowImage = UIImage()
-        }
+    // MARK: - Table View methods
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        let header = UIView()
+        header.backgroundColor = .red
+        return header
+    }
+    
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return view.frame.width / 2
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return 50
     }
     
-    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        let header = UIView()
-        
-        let imageView = UIImageView(image: #imageLiteral(resourceName: "Office"))
-        imageView.contentMode = .scaleAspectFill
-        imageView.layer.masksToBounds = true
-        
-        header.addSubview(imageView)
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        
-        imageView.topAnchor.constraint(equalTo: header.topAnchor).isActive = true
-        imageView.leftAnchor.constraint(equalTo: header.leftAnchor).isActive = true
-        imageView.rightAnchor.constraint(equalTo: header.rightAnchor).isActive = true
-        imageView.bottomAnchor.constraint(equalTo: header.bottomAnchor).isActive = true
-        
-        return header
-    }
-    
-    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return view.frame.width / 1.5
-    }
-    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cellId", for: indexPath)
         
-        cell.textLabel?.text = "Cell: \(indexPath.row)"
+        cell.textLabel?.text = "I am \(indexPath.row + 1) cell."
         
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
+        
+        let cell = tableView.cellForRow(at: indexPath)
+        
         let detailController = DetailController()
-        detailController.controllerTitle = "Cell: \(indexPath.row)"
+        detailController.navTitle = cell?.textLabel?.text
         navigationController?.pushViewController(detailController, animated: true)
     }
-
+    
+    // MARK: - Scroll View Did Scroll
+    // trick for making a fading nav bar
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        
+        let offset = scrollView.contentOffset.y
+        
+        let alpha = offset / offsetThreshold
+        
+        if alpha > 0.0 {
+            setNavBarOpacity(alpha: alpha)
+        } else {
+            makeNavBarTransparent()
+        }
+    }
+    
+    // MARK: - Making Nav Bar Transparent
+    func makeNavBarTransparent() {
+        
+        navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
+        navigationController?.navigationBar.shadowImage = UIImage()
+    }
+    
+    // MARK: - Setting the opacity of nav bar image based on alpha
+    func setNavBarOpacity(alpha: CGFloat) {
+        
+        let navBarColor = UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: alpha)
+        let navBarSize = CGSize(width: view.frame.width, height: 64.0)
+        
+        navigationController?.navigationBar.setBackgroundImage(UIImage(color: navBarColor, size: navBarSize), for: .default)
+        navigationController?.navigationBar.shadowImage = nil
+    }
+    
 }
 
+// MARK: - Generating UIImage from color - STACKOVERFLOW code
 public extension UIImage {
+    
     public convenience init?(color: UIColor, size: CGSize = CGSize(width: 1, height: 1)) {
         let rect = CGRect(origin: .zero, size: size)
         UIGraphicsBeginImageContextWithOptions(rect.size, false, 0.0)
@@ -142,7 +141,6 @@ public extension UIImage {
         self.init(cgImage: cgImage)
     }
 }
-
 
 
 
